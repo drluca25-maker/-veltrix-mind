@@ -2151,42 +2151,68 @@ function stopCamStream(){
 
 function analyzePhoto(){
   if(!camBase64){notify(COUNTRY==='ro'?'Fa o poza mai intai!':'Take a photo first!');return;}
-  showEl('cam-loading',true);showEl('cam-btns-analyze',false);showEl('cam-result',false);
+  var ld=document.getElementById('cam-loading');if(ld)ld.style.display='block';
+  var ba=document.getElementById('cam-btns-analyze');if(ba)ba.style.display='none';
+  var cr=document.getElementById('cam-result');if(cr)cr.style.display='none';
 
-  var prompt = COUNTRY==='ro'||COUNTRY==='md' ?
-    'Acesta este un bon fiscal. Extrage toate produsele si preturile. Raspunde DOAR cu JSON: {"items":[{"name":"Paine","price":5.5}]}. Doar JSON, fara text.' :
-    'This is a receipt. Extract all products and prices. Reply ONLY with JSON: {"items":[{"name":"Bread","price":2.5}]}. Just JSON, no text.';
+  var prompt = 'Aceasta este o imagine cu un bon fiscal sau o chitanta. Citeste TOATE produsele si preturile vizibile. Raspunde STRICT doar cu JSON valid, fara alt text, fara markdown, fara explicatii: {"items":[{"name":"Piept de pui grill","price":18.90},{"name":"Apa minerala 0.5","price":4.50}]}. Daca nu vezi un bon, raspunde cu {"items":[]}.';
 
   fetch('https://api.anthropic.com/v1/messages',{
     method:'POST',
-    headers:{'Content-Type':'application/json','anthropic-version':'2023-06-01'},
+    headers:{
+      'Content-Type':'application/json',
+      'anthropic-version':'2023-06-01',
+      'anthropic-dangerous-direct-browser-access':'true',
+      'x-api-key':'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'
+    },
     body:JSON.stringify({
-      model:'claude-sonnet-4-20250514',max_tokens:600,
+      model:'claude-sonnet-4-20250514',
+      max_tokens:800,
       messages:[{role:'user',content:[
         {type:'image',source:{type:'base64',media_type:'image/jpeg',data:camBase64}},
         {type:'text',text:prompt}
       ]}]
     })
   })
-  .then(function(r){return r.json();})
+  .then(function(r){
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    return r.json();
+  })
   .then(function(data){
-    showEl('cam-loading',false);
-    var text = '';
-    if(data.content&&data.content[0]&&data.content[0].text) text = data.content[0].text.trim();
+    var ld2=document.getElementById('cam-loading');if(ld2)ld2.style.display='none';
+    var text='';
+    if(data.content&&data.content[0]&&data.content[0].text) text=data.content[0].text.trim();
     try{
-      var clean = text.replace(/```json|```/g,'').trim();
-      var parsed = JSON.parse(clean);
-      camScannedItems = parsed.items||[];
+      var clean=text.replace(/```json|```/g,'').trim();
+      // Gaseste primul { si ultimul }
+      var start=clean.indexOf('{');var end=clean.lastIndexOf('}');
+      if(start>=0&&end>start) clean=clean.substring(start,end+1);
+      var parsed=JSON.parse(clean);
+      camScannedItems=parsed.items||[];
       if(!camScannedItems.length) throw new Error('empty');
       renderCamItems();
+      notify(camScannedItems.length+' '+(COUNTRY==='ro'?'produse gasite pe bon!':'items found on receipt!'),'#4ade80');
     }catch(e){
-      // Demo mode
-      demoCamItems();
+      var ba2=document.getElementById('cam-btns-analyze');if(ba2)ba2.style.display='flex';
+      notify(COUNTRY==='ro'?'Nu am gasit produse. Incearca cu o poza mai clara si mai aproape.':'No items found. Try a clearer, closer photo.','var(--amber)');
     }
   })
-  .catch(function(){
-    showEl('cam-loading',false);
-    demoCamItems();
+  .catch(function(err){
+    var ld3=document.getElementById('cam-loading');if(ld3)ld3.style.display='none';
+    var ba3=document.getElementById('cam-btns-analyze');if(ba3)ba3.style.display='flex';
+    // Arata mesaj util
+    var itemsEl=document.getElementById('cam-items-list');
+    var cr2=document.getElementById('cam-result');
+    if(itemsEl&&cr2){
+      itemsEl.innerHTML='<div style="font-size:0.75rem;color:var(--amber);line-height:1.6;padding:0.5rem 0;">'
+        +(COUNTRY==='ro'
+          ?'Pentru a scana bonuri reale, aplicatia trebuie publicata pe un server (nu ca fisier HTML local).<br><br>Ca sa publici gratuit: incarca fisierul pe <strong>netlify.com</strong> sau <strong>github.io</strong> si deschide linkul de acolo.'
+          :'To scan real receipts, the app must be hosted on a server (not opened as local HTML file).<br><br>To host free: upload to <strong>netlify.com</strong> or <strong>github.io</strong> and open from there.')
+        +'</div>';
+      cr2.style.display='block';
+      // Ascunde butonul de adaugare
+      var addBtn=document.getElementById('cam-add-btn');if(addBtn)addBtn.style.display='none';
+    }
   });
 };
 
