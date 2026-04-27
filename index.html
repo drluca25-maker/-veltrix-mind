@@ -383,6 +383,9 @@ input[type=range]::-webkit-slider-thumb{appearance:none;width:18px;height:18px;b
 .wheel-ring{position:absolute;inset:0;width:340px;height:340px;animation:spinW 22s linear infinite;transform-origin:170px 170px;}
 .wheel-ring.paused{animation-play-state:paused;}
 @keyframes spinW{from{transform:rotate(0deg);}to{transform:rotate(360deg);}}
+@keyframes spin{from{transform:rotate(0deg);}to{transform:rotate(360deg);}}
+.si-del{background:none;border:none;color:rgba(255,255,255,0.2);font-size:1rem;cursor:pointer;padding:0 0.2rem 0 0.4rem;line-height:1;flex-shrink:0;}
+.si-del:active{color:#f87171;}
 .mag-ico{position:absolute;width:60px;height:60px;border-radius:14px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;border:1px solid;transition:transform 0.15s;}
 .mag-ico:active{transform:scale(0.88);}
 .mag-ico-e{font-size:1.3rem;margin-bottom:1px;}
@@ -777,28 +780,37 @@ body.light .mag-hdr{background:rgba(245,245,245,0.97);}
     <div style="font-size:1rem;font-weight:700;color:#fff;" id="cam-title">Scaneaza bonul</div>
     <button onclick="closeCamera()" style="background:none;border:none;color:#777;font-size:1.5rem;cursor:pointer;">&#x2715;</button>
   </div>
-  <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:1.5rem;gap:1rem;">
+  <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:1.2rem;gap:0.8rem;overflow-y:auto;">
     <!-- Preview camera live -->
-    <video id="cam-video" style="display:none;width:100%;max-height:300px;border-radius:14px;object-fit:cover;border:1px solid rgba(255,255,255,0.1);" autoplay playsinline></video>
+    <video id="cam-video" style="display:none;width:100%;max-height:260px;border-radius:14px;object-fit:cover;border:1px solid rgba(255,255,255,0.1);" autoplay playsinline></video>
     <canvas id="cam-canvas" style="display:none;"></canvas>
-    <img id="cam-preview" style="display:none;width:100%;max-height:300px;border-radius:14px;object-fit:cover;border:1px solid rgba(167,139,250,0.3);">
-    
-    <div id="cam-placeholder" style="width:100%;height:200px;border:2px dashed rgba(255,255,255,0.1);border-radius:14px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0.5rem;">
-      <div style="font-size:2.5rem;">&#128247;</div>
-      <div style="font-size:0.82rem;color:#777;" id="cam-placeholder-txt">Fa o poza la bon sau incarca din galerie</div>
+    <img id="cam-preview" style="display:none;width:100%;max-height:260px;border-radius:14px;object-fit:cover;border:2px solid rgba(167,139,250,0.5);">
+
+    <!-- Placeholder cu ghidaj bon -->
+    <div id="cam-placeholder" style="width:100%;height:210px;border-radius:14px;background:rgba(255,255,255,0.03);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0.5rem;position:relative;">
+      <div style="position:absolute;top:12px;left:12px;width:22px;height:22px;border-top:2px solid rgba(167,139,250,0.5);border-left:2px solid rgba(167,139,250,0.5);border-radius:3px 0 0 0;"></div>
+      <div style="position:absolute;top:12px;right:12px;width:22px;height:22px;border-top:2px solid rgba(167,139,250,0.5);border-right:2px solid rgba(167,139,250,0.5);border-radius:0 3px 0 0;"></div>
+      <div style="position:absolute;bottom:12px;left:12px;width:22px;height:22px;border-bottom:2px solid rgba(167,139,250,0.5);border-left:2px solid rgba(167,139,250,0.5);border-radius:0 0 0 3px;"></div>
+      <div style="position:absolute;bottom:12px;right:12px;width:22px;height:22px;border-bottom:2px solid rgba(167,139,250,0.5);border-right:2px solid rgba(167,139,250,0.5);border-radius:0 0 3px 0;"></div>
+      <div style="font-size:2rem;opacity:0.3;">&#129955;</div>
+      <div style="font-size:0.75rem;color:rgba(255,255,255,0.3);text-align:center;padding:0 2rem;line-height:1.5;" id="cam-placeholder-txt">Pozitioneaza bonul in cadru si apasa Camera</div>
     </div>
 
-    <!-- Butoane -->
+    <!-- Butoane start: Camera + Galerie separate -->
     <div id="cam-btns-start" style="display:flex;flex-direction:column;gap:0.5rem;width:100%;">
-      <label for="cam-file-input" style="width:100%;background:rgba(167,139,250,0.15);border:1px solid rgba(167,139,250,0.3);border-radius:12px;padding:0.9rem;color:#a78bfa;font-size:0.88rem;font-weight:700;cursor:pointer;font-family:inherit;display:block;text-align:center;" id="btn-live-cam">
-        &#128247; Deschide camera / Galerie
-      </label>
-      <label style="width:100%;background:var(--s2);border:1px solid var(--border);border-radius:12px;padding:0.9rem;color:#fff;font-size:0.88rem;font-weight:600;cursor:pointer;text-align:center;display:block;" for="cam-file-input">
-        &#128444; Alege din galerie
-      </label>
-      <input type="file" id="cam-file-input" accept="image/*" capture="environment" style="display:none;" onchange="loadFromGallery(this)">
+      <div style="display:flex;gap:0.5rem;">
+        <label for="cam-file-camera" style="flex:1;background:rgba(167,139,250,0.15);border:1px solid rgba(167,139,250,0.35);border-radius:12px;padding:0.85rem;color:#a78bfa;font-size:0.85rem;font-weight:700;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:0.35rem;">
+          &#128247; Camera
+        </label>
+        <label for="cam-file-gallery" style="flex:1;background:var(--s2);border:1px solid var(--border);border-radius:12px;padding:0.85rem;color:var(--text);font-size:0.85rem;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:0.35rem;">
+          &#128444; Galerie
+        </label>
+      </div>
+      <input type="file" id="cam-file-camera" accept="image/*" capture="environment" style="display:none;" onchange="loadFromGallery(this)">
+      <input type="file" id="cam-file-gallery" accept="image/*" style="display:none;" onchange="loadFromGallery(this)">
     </div>
 
+    <!-- Butoane capture (live camera pe desktop) -->
     <div id="cam-btns-capture" style="display:none;flex-direction:column;gap:0.5rem;width:100%;">
       <button onclick="capturePhoto()" style="width:100%;background:rgba(167,139,250,0.9);border:none;border-radius:12px;padding:0.9rem;color:#fff;font-size:0.88rem;font-weight:700;cursor:pointer;font-family:inherit;">
         &#128247; Fotografiaza
@@ -808,24 +820,27 @@ body.light .mag-hdr{background:rgba(245,245,245,0.97);}
       </button>
     </div>
 
-    <div id="cam-btns-analyze" style="display:none;flex-direction:column;gap:0.5rem;width:100%;">
-      <button onclick="analyzePhoto()" style="width:100%;background:#a78bfa;border:none;border-radius:12px;padding:0.9rem;color:#fff;font-size:0.88rem;font-weight:700;cursor:pointer;font-family:inherit;">
-        &#129302; Analizeaza cu AI
-      </button>
-      <button onclick="retakePhoto()" style="width:100%;background:var(--s2);border:1px solid var(--border);border-radius:12px;padding:0.7rem;color:#777;font-size:0.82rem;cursor:pointer;font-family:inherit;">
-        Refac poza
-      </button>
+    <!-- Loading spinner -->
+    <div id="cam-loading" style="display:none;text-align:center;padding:1rem;width:100%;">
+      <div style="display:flex;align-items:center;justify-content:center;gap:0.6rem;">
+        <div style="width:15px;height:15px;border:2px solid rgba(167,139,250,0.2);border-top-color:#a78bfa;border-radius:50%;animation:spin 0.7s linear infinite;flex-shrink:0;"></div>
+        <div style="font-size:0.83rem;color:#a78bfa;" id="cam-loading-txt">AI-ul citeste bonul...</div>
+      </div>
     </div>
 
-    <div id="cam-loading" style="display:none;text-align:center;padding:1rem;">
-      <div style="font-size:0.85rem;color:#a78bfa;" id="cam-loading-txt">Se analizeaza bonul...</div>
-    </div>
-
-    <div id="cam-result" style="display:none;background:var(--s2);border-radius:12px;padding:0.9rem;width:100%;">
-      <div style="font-size:0.6rem;letter-spacing:0.15em;text-transform:uppercase;color:#777;margin-bottom:0.5rem;" id="cam-found-txt">Produse gasite:</div>
+    <!-- Rezultate -->
+    <div id="cam-result" style="display:none;background:var(--s2);border:1px solid var(--border);border-radius:14px;padding:0.9rem;width:100%;">
+      <div style="font-size:0.52rem;letter-spacing:0.18em;text-transform:uppercase;color:#777;margin-bottom:0.6rem;" id="cam-found-txt">Produse gasite:</div>
       <div id="cam-items-list"></div>
-      <button onclick="addCamItems()" style="width:100%;background:#4ade80;color:#000;border:none;border-radius:10px;padding:0.75rem;font-size:0.85rem;font-weight:700;cursor:pointer;font-family:inherit;margin-top:0.6rem;" id="cam-add-btn">
-        Adauga toate cheltuielile
+      <div id="cam-total-row" style="display:flex;justify-content:space-between;align-items:center;padding:0.5rem 0 0.4rem;border-top:1px solid rgba(255,255,255,0.06);margin-top:0.2rem;">
+        <span style="font-size:0.72rem;color:var(--muted2);">Total bon</span>
+        <span style="font-size:0.9rem;font-weight:700;color:var(--red);font-family:'DM Mono',monospace;" id="cam-total-val">0 lei</span>
+      </div>
+      <button onclick="addCamItems()" style="width:100%;background:#4ade80;color:#000;border:none;border-radius:10px;padding:0.8rem;font-size:0.87rem;font-weight:700;cursor:pointer;font-family:inherit;margin-top:0.4rem;" id="cam-add-btn">
+        Adauga cheltuielile
+      </button>
+      <button onclick="retakePhoto()" style="width:100%;background:transparent;border:none;padding:0.5rem;font-size:0.75rem;color:var(--muted2);cursor:pointer;font-family:inherit;margin-top:0.1rem;">
+        Refac poza
       </button>
     </div>
   </div>
@@ -2055,11 +2070,13 @@ function closeCamera(){
 
 function resetCamState(){
   camBase64='';camScannedItems=[];
+  ['cam-file-camera','cam-file-gallery'].forEach(function(id){var el=document.getElementById(id);if(el)el.value='';});
   function hide(id){var el=document.getElementById(id);if(el)el.style.display='none';}
   function show(id,d){var el=document.getElementById(id);if(el)el.style.display=d||'block';}
   show('cam-placeholder','flex');hide('cam-video');hide('cam-preview');
-  show('cam-btns-start','flex');hide('cam-btns-capture');hide('cam-btns-analyze');
+  show('cam-btns-start','flex');hide('cam-btns-capture');
   hide('cam-loading');hide('cam-result');
+  var addBtn=document.getElementById('cam-add-btn');if(addBtn)addBtn.style.display='';
 }
 function showEl(id,show){
   var el=document.getElementById(id);
@@ -2084,8 +2101,7 @@ function startLiveCamera(){
   // Pe fisiere locale (file://) camera nu merge - deschidem galeria
   var isLocal = window.location.protocol === 'file:' || window.location.protocol === 'blob:';
   if(isLocal || !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){
-    // Trigger file input direct
-    var fi = document.getElementById('cam-file-input');
+    var fi = document.getElementById('cam-file-camera');
     if(fi) fi.click();
     return;
   }
@@ -2099,8 +2115,7 @@ function startLiveCamera(){
     var bc = document.getElementById('cam-btns-capture');if(bc)bc.style.display='flex';
   })
   .catch(function(err){
-    // Camera blocata - deschide galeria
-    var fi = document.getElementById('cam-file-input');
+    var fi = document.getElementById('cam-file-camera');
     if(fi) fi.click();
   });
 };
@@ -2115,13 +2130,13 @@ function capturePhoto(){
   ctx.drawImage(video,0,0);
   var dataURL = canvas.toDataURL('image/jpeg',0.85);
   camBase64 = dataURL.split(',')[1];
-  // Arata preview
   var preview = document.getElementById('cam-preview');
   if(preview){preview.src=dataURL;preview.style.display='block';}
   stopCamStream();
   var vid = document.getElementById('cam-video');if(vid)vid.style.display='none';
   showEl('cam-placeholder',false);
-  showEl('cam-btns-capture',false);showEl('cam-btns-analyze',true);
+  showEl('cam-btns-capture',false);
+  analyzePhoto();
 };
 
 function loadFromGallery(input){
@@ -2133,16 +2148,19 @@ function loadFromGallery(input){
     var preview = document.getElementById('cam-preview');
     if(preview){preview.src=dataURL;preview.style.display='block';}
     showEl('cam-placeholder',false);
-    showEl('cam-btns-start',false);showEl('cam-btns-analyze',true);
+    showEl('cam-btns-start',false);
+    analyzePhoto();
   };
   reader.readAsDataURL(input.files[0]);
 };
 
 function retakePhoto(){
   var preview = document.getElementById('cam-preview');if(preview)preview.style.display='none';
+  // reset file inputs so same file can be re-selected
+  ['cam-file-camera','cam-file-gallery'].forEach(function(id){var el=document.getElementById(id);if(el)el.value='';});
   camBase64='';
-  showEl('cam-btns-analyze',false);showEl('cam-btns-start',true);showEl('cam-placeholder',true);
-  showEl('cam-result',false);
+  showEl('cam-btns-start',true);showEl('cam-placeholder',true);
+  showEl('cam-loading',false);showEl('cam-result',false);
 };
 
 function stopCamStream(){
@@ -2151,9 +2169,8 @@ function stopCamStream(){
 
 function analyzePhoto(){
   if(!camBase64){notify(COUNTRY==='ro'?'Fa o poza mai intai!':'Take a photo first!');return;}
-  var ld=document.getElementById('cam-loading');if(ld)ld.style.display='block';
-  var ba=document.getElementById('cam-btns-analyze');if(ba)ba.style.display='none';
-  var cr=document.getElementById('cam-result');if(cr)cr.style.display='none';
+  showEl('cam-loading',true);
+  showEl('cam-result',false);
 
   var prompt = 'Aceasta este o imagine cu un bon fiscal sau o chitanta. Citeste TOATE produsele si preturile vizibile. Raspunde STRICT doar cu JSON valid, fara alt text, fara markdown, fara explicatii: {"items":[{"name":"Piept de pui grill","price":18.90},{"name":"Apa minerala 0.5","price":4.50}]}. Daca nu vezi un bon, raspunde cu {"items":[]}.';
 
@@ -2179,12 +2196,11 @@ function analyzePhoto(){
     return r.json();
   })
   .then(function(data){
-    var ld2=document.getElementById('cam-loading');if(ld2)ld2.style.display='none';
+    showEl('cam-loading',false);
     var text='';
     if(data.content&&data.content[0]&&data.content[0].text) text=data.content[0].text.trim();
     try{
       var clean=text.replace(/```json|```/g,'').trim();
-      // Gaseste primul { si ultimul }
       var start=clean.indexOf('{');var end=clean.lastIndexOf('}');
       if(start>=0&&end>start) clean=clean.substring(start,end+1);
       var parsed=JSON.parse(clean);
@@ -2193,14 +2209,13 @@ function analyzePhoto(){
       renderCamItems();
       notify(camScannedItems.length+' '+(COUNTRY==='ro'?'produse gasite pe bon!':'items found on receipt!'),'#4ade80');
     }catch(e){
-      var ba2=document.getElementById('cam-btns-analyze');if(ba2)ba2.style.display='flex';
+      showEl('cam-btns-start',true);showEl('cam-placeholder',true);
+      var preview=document.getElementById('cam-preview');if(preview)preview.style.display='none';
       notify(COUNTRY==='ro'?'Nu am gasit produse. Incearca cu o poza mai clara si mai aproape.':'No items found. Try a clearer, closer photo.','var(--amber)');
     }
   })
   .catch(function(err){
-    var ld3=document.getElementById('cam-loading');if(ld3)ld3.style.display='none';
-    var ba3=document.getElementById('cam-btns-analyze');if(ba3)ba3.style.display='flex';
-    // Arata mesaj util
+    showEl('cam-loading',false);
     var itemsEl=document.getElementById('cam-items-list');
     var cr2=document.getElementById('cam-result');
     if(itemsEl&&cr2){
@@ -2209,9 +2224,9 @@ function analyzePhoto(){
           ?'Pentru a scana bonuri reale, aplicatia trebuie publicata pe un server (nu ca fisier HTML local).<br><br>Ca sa publici gratuit: incarca fisierul pe <strong>netlify.com</strong> sau <strong>github.io</strong> si deschide linkul de acolo.'
           :'To scan real receipts, the app must be hosted on a server (not opened as local HTML file).<br><br>To host free: upload to <strong>netlify.com</strong> or <strong>github.io</strong> and open from there.')
         +'</div>';
-      cr2.style.display='block';
-      // Ascunde butonul de adaugare
+      var totalRow=document.getElementById('cam-total-row');if(totalRow)totalRow.style.display='none';
       var addBtn=document.getElementById('cam-add-btn');if(addBtn)addBtn.style.display='none';
+      cr2.style.display='block';
     }
   });
 };
@@ -2231,15 +2246,37 @@ function demoCamItems(){
 }
 
 function renderItemsHTML(){
-  return camScannedItems.map(function(item){
-    return '<div class="scan-item"><div class="si-name">'+item.name+'</div><div class="si-price">'+item.price+' '+T.currencySymbol+'</div></div>';
+  return camScannedItems.map(function(item,i){
+    return '<div class="scan-item"><div class="si-name">'+item.name+'</div><div style="display:flex;align-items:center;gap:0.1rem;"><div class="si-price">'+item.price+' '+T.currencySymbol+'</div><button class="si-del" onclick="deleteCamItem('+i+')" title="Sterge">&#xD7;</button></div></div>';
   }).join('');
 }
 
 function renderCamItems(){
   var el = document.getElementById('cam-items-list');
   if(el) el.innerHTML = renderItemsHTML();
+  var total = camScannedItems.reduce(function(s,it){return s+(parseFloat(it.price)||0);},0);
+  var tv = document.getElementById('cam-total-val');
+  if(tv) tv.textContent = total.toFixed(2)+' '+T.currencySymbol;
+  var totalRow = document.getElementById('cam-total-row');
+  if(totalRow) totalRow.style.display='flex';
+  var addBtn = document.getElementById('cam-add-btn');
+  if(addBtn){
+    addBtn.style.display='';
+    addBtn.textContent = (COUNTRY==='ro'?'+ Adauga ':' + Add ')+camScannedItems.length+(COUNTRY==='ro'?' cheltuieli':' items');
+  }
   showEl('cam-result',true);
+}
+
+function deleteCamItem(i){
+  camScannedItems.splice(i,1);
+  if(!camScannedItems.length){
+    showEl('cam-result',false);
+    showEl('cam-btns-start',true);showEl('cam-placeholder',true);
+    var preview=document.getElementById('cam-preview');if(preview)preview.style.display='none';
+    camBase64='';
+  } else {
+    renderCamItems();
+  }
 }
 
 function addCamItems(){
@@ -2293,6 +2330,7 @@ var loadFromGallery = window.loadFromGallery;
 var retakePhoto = window.retakePhoto;
 var analyzePhoto = window.analyzePhoto;
 var addCamItems = window.addCamItems;
+var deleteCamItem = window.deleteCamItem;
 var toggleTheme = window.toggleTheme;
 var showLangModal = window.showLangModal;
 var closeLangModal = window.closeLangModal;
